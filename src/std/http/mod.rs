@@ -8,6 +8,16 @@ pub trait ReadCloser: Read + Closer {}
 
 pub trait WriteCloser: Write + Closer {}
 
+struct NopCloser<R> where R:Read {
+   pub reader:R
+}
+
+impl <R>Closer for NopCloser<R> {
+    fn close(&mut self) -> crate::std::errors::Result<()> {
+        Ok(())
+    }
+}
+
 pub struct Request {
     inner: http::Request<Box<dyn ReadCloser>>,
 }
