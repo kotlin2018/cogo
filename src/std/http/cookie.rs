@@ -1,5 +1,8 @@
+use std::collections::HashMap;
 use std::ops::Index;
 use http::HeaderValue;
+use once_cell::sync::Lazy;
+use crate::std::strings;
 
 pub struct Cookie {
     name: String,
@@ -53,17 +56,115 @@ fn read_set_cookies(h: http::HeaderMap) -> Vec<Cookie> {
             continue;
         }
         parts[0] = parts[0].trim();
-        let j: i32 = {
-            match parts[0].find("=") {
-                None => { -1 }
-                Some(v) => { v as i32 }
-            }
-        };
+        let j: i32 = strings::index(parts[0], "=");
         if j < 0 {
             continue;
         }
-
-
+        let name = &parts[0][0..j as usize];
+        let value = &parts[0][j as usize + 1..];
+        if !isCookieNameValid(name) {
+            continue;
+        }
     }
     cookies
+}
+
+
+fn isCookieNameValid(raw: &str) -> bool {
+    if raw == "" {
+        return false;
+    }
+    return strings.IndexFunc(raw, isNotToken) < 0;
+}
+
+
+fn isNotToken(r: char) -> bool {
+    return !IsTokenRune(r);
+}
+
+const isTokenTable: Lazy<Vec<char>> = Lazy::new(|| {
+    let mut m = Vec::with_capacity(127);
+    m.push('!');
+    m.push('#');
+    m.push('$');
+    m.push('%');
+    m.push('&');
+    m.push('\'');
+    m.push('*');
+    m.push('+');
+    m.push('-');
+    m.push('.');
+    m.push('0');
+    m.push('1');
+    m.push('2');
+    m.push('3');
+    m.push('4');
+    m.push('5');
+    m.push('6');
+    m.push('7');
+    m.push('8');
+    m.push('9');
+    m.push('A');
+    m.push('B');
+    m.push('C');
+    m.push('D');
+    m.push('E');
+    m.push('F');
+    m.push('G');
+    m.push('H');
+    m.push('I');
+    m.push('J');
+    m.push('K');
+    m.push('L');
+    m.push('M');
+    m.push('N');
+    m.push('O');
+    m.push('P');
+    m.push('Q');
+    m.push('R');
+    m.push('S');
+    m.push('T');
+    m.push('U');
+    m.push('V');
+    m.push('W');
+    m.push('X');
+    m.push('Y');
+    m.push('Z');
+    m.push('^');
+    m.push('_');
+    m.push('`');
+    m.push('a');
+    m.push('b');
+    m.push('c');
+    m.push('d');
+    m.push('e');
+    m.push('f');
+    m.push('g');
+    m.push('h');
+    m.push('i');
+    m.push('j');
+    m.push('k');
+    m.push('l');
+    m.push('m');
+    m.push('n');
+    m.push('o');
+    m.push('p');
+    m.push('q');
+    m.push('r');
+    m.push('s');
+    m.push('t');
+    m.push('u');
+    m.push('v');
+    m.push('w');
+    m.push('x');
+    m.push('y');
+    m.push('z');
+    m.push('|');
+    m.push('~');
+    m
+});
+
+fn IsTokenRune(r: char) -> bool {
+    let i = r as i32;
+    return i < len(isTokenTable) && isTokenTable[i];
 }
