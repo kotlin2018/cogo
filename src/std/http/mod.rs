@@ -1,3 +1,6 @@
+pub mod jar;
+pub mod cookie;
+
 use std::io::{Read, Write};
 use crate::std::io::{Closer, ReadCloser, WriteCloser};
 
