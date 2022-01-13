@@ -2,25 +2,26 @@ use std::collections::HashMap;
 use std::ops::{Deref, Index};
 use http::HeaderValue;
 use once_cell::sync::Lazy;
+use crate::std::net::textproto;
 use crate::std::strings;
 
 pub struct Cookie {
-    name: String,
-    value: String,
-    path: String,
-    domain: String,
-    expires: String,
-    raw_expires: String,
+    pub name: String,
+    pub value: String,
+    pub path: String,
+    pub domain: String,
+    pub expires: String,
+    pub raw_expires: String,
     // for reading cookies only
     // MaxAge=0 means no 'Max-Age' attribute specified.
     // MaxAge<0 means delete cookie now, equivalently 'Max-Age: 0'
     // MaxAge>0 means Max-Age attribute present and given in seconds
-    max_age: i32,
-    secure: bool,
-    http_only: bool,
-    same_site: SameSite,
-    raw: String,
-    unparsed: Vec<String>, // Raw text of unparsed attribute-value pairs
+    pub max_age: i32,
+    pub secure: bool,
+    pub http_only: bool,
+    pub same_site: SameSite,
+    pub raw: String,
+    pub unparsed: Vec<String>, // Raw text of unparsed attribute-value pairs
 }
 
 // SameSite allows a server to define a cookie attribute making it impossible for
@@ -51,12 +52,20 @@ fn read_set_cookies(h: http::HeaderMap) -> Vec<Cookie> {
     }
     let mut cookies = vec![];
     for line in set_cookie {
-        let mut parts: Vec<&str> = line.to_str().unwrap_or_default().trim().split(";").collect();
+        let s = textproto::trim_string(line.to_str().unwrap_or_default());
+        let mut parts: Vec<&str> = s.split(";").collect();
         if parts.len() == 1 && parts[0] == "" {
             continue;
         }
-        parts[0] = parts[0].trim();
-        let j: i32 = strings::index(parts[0], "=");
+        let mut parts = {
+            let mut data = Vec::with_capacity(parts.capacity());
+            for x in parts {
+                data.push(x.to_string());
+            }
+            data
+        };
+        parts[0] = textproto::trim_string(&parts[0]);
+        let j: i32 = strings::index(&parts[0], "=");
         if j < 0 {
             continue;
         }
@@ -69,7 +78,7 @@ fn read_set_cookies(h: http::HeaderMap) -> Vec<Cookie> {
         if !ok {
             continue;
         }
-        let c = &Cookie {
+        let mut c = Cookie {
             name: name.to_string(),
             value: value.to_string(),
             path: "".to_string(),
@@ -83,12 +92,80 @@ fn read_set_cookies(h: http::HeaderMap) -> Vec<Cookie> {
             raw: line.to_str().unwrap_or_default().to_string(),
             unparsed: vec![],
         };
-        let mut i = 0;
-        for x in parts {
-            i += 1;
+        for i in 0..parts.len() {
+            parts[i] = textproto::trim_string(&parts[i]);
+            if parts[i].len() == 0 {
+                continue;
+            }
+            let mut attr = parts[i].as_str();
+            let mut val = "";
+            if let Some(j) = attr.find("=") {
+                attr = &attr[0..j];
+                val = &attr[j + 1..];
+            }
+            let lowerAttr = attr.to_lowercase();
+            let (val, ok) = parse_cookie_value(val, false);
+            if !ok {
+                c.unparsed.push(parts[i].clone());
+            }
+            match lowerAttr.as_str() {
+                "samesite" => {
+                    let lowerVal = val.to_lowercase();
+                    match lowerVal.as_str() {
+                        "lax" => {
+                            c.same_site = SameSiteLaxMode;
+                        }
+                        "strict" => {
+                            c.same_site = SameSiteStrictMode;
+                        }
+                        "none" => {
+                            c.same_site = SameSiteNoneMode;
+                        }
+                        _ => {
+                            c.same_site = SameSiteDefaultMode;
+                        }
+                    }
+                    continue;
+                }
+                "secure" => {
+                    c.secure = true;
+                    continue;
+                }
+                "httponly" => {
+                    c.http_only = true;
+                    continue;
+                }
+                "domain" => {
+                    c.domain = val.to_string();
+                }
+                "max-age" => {
+                    let secs = val.parse();
+                    if secs.is_err() {
+                        break;
+                    }
+                    let mut secs: i32 = secs.unwrap();
+                    if secs != 0 && val.starts_with("0") {
+                        break;
+                    }
+                    if secs <= 0 {
+                        secs = -1
+                    }
+                    c.max_age = secs;
+                    continue;
+                }
+                "expires" => {
+                    c.raw_expires = val.to_string();
+                    //TODO time RFC1123
+                }
+                "path" => {
+                    c.path = val.to_string();
+                    continue;
+                }
+                _ => {}
+            }
+            c.unparsed.push(parts[i].clone());
         }
-
-        //TODO
+        cookies.push(c);
     }
     cookies
 }
