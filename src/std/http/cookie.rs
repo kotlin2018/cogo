@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::ops::Index;
+use std::ops::{Deref, Index};
 use http::HeaderValue;
 use once_cell::sync::Lazy;
 use crate::std::strings;
@@ -62,27 +62,51 @@ fn read_set_cookies(h: http::HeaderMap) -> Vec<Cookie> {
         }
         let name = &parts[0][0..j as usize];
         let value = &parts[0][j as usize + 1..];
-        if !isCookieNameValid(name) {
+        if !is_cookie_name_valid(name) {
             continue;
         }
+        let (value, ok) = parse_cookie_value(value, true);
+        if !ok {
+            continue;
+        }
+        let c = &Cookie {
+            name: name.to_string(),
+            value: value.to_string(),
+            path: "".to_string(),
+            domain: "".to_string(),
+            expires: "".to_string(),
+            raw_expires: "".to_string(),
+            max_age: 0,
+            secure: false,
+            http_only: false,
+            same_site: 0,
+            raw: line.to_str().unwrap_or_default().to_string(),
+            unparsed: vec![],
+        };
+        let mut i = 0;
+        for x in parts {
+            i += 1;
+        }
+
+        //TODO
     }
     cookies
 }
 
 
-fn isCookieNameValid(raw: &str) -> bool {
+//isCookieNameValid
+fn is_cookie_name_valid(raw: &str) -> bool {
     if raw == "" {
         return false;
     }
-    return strings.IndexFunc(raw, isNotToken) < 0;
+    return strings::index_func(raw, is_not_token) < 0;
 }
 
-
-fn isNotToken(r: char) -> bool {
-    return !IsTokenRune(r);
+fn is_not_token(r: char) -> bool {
+    return !is_token_rune(r);
 }
 
-const isTokenTable: Lazy<Vec<char>> = Lazy::new(|| {
+const IS_TOKEN_TABLE: Lazy<Vec<char>> = Lazy::new(|| {
     let mut m = Vec::with_capacity(127);
     m.push('!');
     m.push('#');
@@ -164,7 +188,26 @@ const isTokenTable: Lazy<Vec<char>> = Lazy::new(|| {
     m
 });
 
-fn IsTokenRune(r: char) -> bool {
-    let i = r as i32;
-    return i < len(isTokenTable) && isTokenTable[i];
+fn is_token_rune(r: char) -> bool {
+    let i = r as usize;
+    return (i < IS_TOKEN_TABLE.len()) && IS_TOKEN_TABLE.deref().get(i).is_some();
+}
+
+
+fn valid_cookie_value_byte(b: u8) -> bool {
+    return 0x20 <= b && b < 0x7f && b != '"' as u8 && b != ';' as u8 && b != '\\' as u8;
+}
+
+fn parse_cookie_value(raw: &str, allow_double_quote: bool) -> (&str, bool) {
+    // Strip the quotes, if present.
+    let mut raw = raw;
+    if allow_double_quote && raw.len() > 1 && raw.starts_with('"') && raw.ends_with('"') {
+        raw = raw.trim_matches('"');
+    }
+    for x in raw.chars() {
+        if !valid_cookie_value_byte(x as u8) {
+            return ("", false);
+        }
+    }
+    return (raw, true);
 }
