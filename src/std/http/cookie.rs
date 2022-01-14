@@ -194,7 +194,7 @@ fn is_not_token(r: char) -> bool {
     return !is_token_rune(r);
 }
 
-const IS_TOKEN_TABLE: Lazy<HashMap<char,bool>> = Lazy::new(|| {
+static  IS_TOKEN_TABLE: Lazy<HashMap<char,bool>> = Lazy::new(|| {
     hash_map! {
     '!':  true,
 	'#':  true,
@@ -278,7 +278,7 @@ const IS_TOKEN_TABLE: Lazy<HashMap<char,bool>> = Lazy::new(|| {
 
 fn is_token_rune(r: char) -> bool {
     let i = r as usize;
-    return (i < IS_TOKEN_TABLE.len()) && IS_TOKEN_TABLE.deref().get(&r).is_some();
+    return (i < IS_TOKEN_TABLE.len()) && IS_TOKEN_TABLE.get(&r).is_some();
 }
 
 
