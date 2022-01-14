@@ -19,7 +19,7 @@ Cogo is a high-performance library for programming stackful coroutines with whic
 
 # cogo crates
 
-> Cogo STD standard library
+> Cogo Powerful standard library
 * ``` cogo/std/http/server ``` An HTTP server is available(Body parsing upcoming)
 * ``` cogo/std/http/client ``` An HTTP Client(TODO) upcoming
 * ``` cogo/std/queue ``` Basic queue data structures
@@ -27,7 +27,7 @@ Cogo is a high-performance library for programming stackful coroutines with whic
 * ``` cogo/std/defer ``` Defers evaluation of a block of code until the end of the scope.
 * ``` cogo/std/map ```  Provides the same concurrency map as Golang, with ```SyncHashMap``` and ```SyncBtreeMap```.It is suitable for concurrent environments with too many reads and too few writes
 * ``` cogo/std/time ``` Improve the implementation of a high performance time
-
+* ``` cogo/std/lazy ``` Thread/coroutine safe global variable,Lazy struct,OnceCell
 
 > Crates based on cogo implementation
 * [cdbc](https://github.com/co-rs/cdbc) Database Drivers include mysql, Postgres, AND SQLite
