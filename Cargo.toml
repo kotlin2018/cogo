@@ -5,7 +5,7 @@ members = [
 
 [package]
 name = "cogo"
-version = "0.1.19"
+version = "0.1.20"
 edition = "2018"
 authors = ["zhuxiujia@qq.com","Xudong Huang <huangxu008@hotmail.com>"]
 license = "MIT/Apache-2.0"
@@ -44,6 +44,8 @@ bytes = "1.1.0"
 httparse = "1"
 itoa = "0.4"
 httpdate = "1.0"
+time = {version = "0.3.5",features = ["formatting","local-offset","parsing","serde"]}
+serde = "1.0"
 http = "0.2"
 
 [target.'cfg(unix)'.dependencies]
