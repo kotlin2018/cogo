@@ -32,6 +32,20 @@ pub struct Time {
 }
 
 impl Time {
+    /// convert self to utc time
+    pub fn utc(&self) -> Self {
+        Self {
+            inner: self.inner.to_offset(UtcOffset::UTC)
+        }
+    }
+
+    /// convert self to utc time
+    pub fn local(&self) -> Self {
+        Self {
+            inner: self.inner.to_offset(GLOBAL_OFFSET.deref().clone())
+        }
+    }
+
     pub fn unix_timestamp(&self) -> i64 {
         self.inner.unix_timestamp()
     }
