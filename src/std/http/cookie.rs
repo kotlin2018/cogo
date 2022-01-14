@@ -4,13 +4,15 @@ use http::HeaderValue;
 use once_cell::sync::Lazy;
 use crate::std::net::textproto;
 use crate::std::strings;
+use crate::std::time::time::Time;
+use crate::std::time::time;
 
 pub struct Cookie {
     pub name: String,
     pub value: String,
     pub path: String,
     pub domain: String,
-    pub expires: String,
+    pub expires: Time,
     pub raw_expires: String,
     // for reading cookies only
     // MaxAge=0 means no 'Max-Age' attribute specified.
@@ -83,7 +85,7 @@ fn read_set_cookies(h: http::HeaderMap) -> Vec<Cookie> {
             value: value.to_string(),
             path: "".to_string(),
             domain: "".to_string(),
-            expires: "".to_string(),
+            expires: Time::default(),
             raw_expires: "".to_string(),
             max_age: 0,
             secure: false,
@@ -155,7 +157,15 @@ fn read_set_cookies(h: http::HeaderMap) -> Vec<Cookie> {
                 }
                 "expires" => {
                     c.raw_expires = val.to_string();
-                    //TODO time RFC1123
+                    let mut exptime = Time::parse(time::RFC1123, val);
+                    if let Err(_) = exptime {
+                        exptime = Time::parse(time::RFC1123, val);
+                        if exptime.is_err() {
+                            c.expires = time::Time::default();
+                            break;
+                        }
+                    }
+                    c.expires = exptime.utc();
                 }
                 "path" => {
                     c.path = val.to_string();
