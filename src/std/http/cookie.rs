@@ -165,7 +165,7 @@ fn read_set_cookies(h: http::HeaderMap) -> Vec<Cookie> {
                             break;
                         }
                     }
-                    c.expires = exptime.utc();
+                    c.expires = exptime.unwrap().utc();
                 }
                 "path" => {
                     c.path = val.to_string();
