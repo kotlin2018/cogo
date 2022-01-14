@@ -1,10 +1,12 @@
-# cogo
+# cogo 
+
+> Way too Easy
 
 <img style="width: 100px;height: 100px;" width="100" height="100" src="docs/logo.png" />
 
 Cogo is a high-performance library for programming stackful coroutines with which you can easily develop and maintain massive concurrent programs. It can be thought as the Rust version of the popular [Goroutine][go].
 
-> Initial code frok from [May](https://github.com/Xudong-Huang/may) and we add Many improvements(Inspired by ```Golang```  [parking_lot](https://github.com/Amanieu/parking_lot)  and [crossbeam](https://github.com/crossbeam-rs/crossbeam)) and [hyper](https://github.com/hyperium/hyper) and more...
+> Initial code frok from [May](https://github.com/Xudong-Huang/may) and we add Many improvements(Inspired by [Golang](https://golang.google.cn/),  [parking_lot](https://github.com/Amanieu/parking_lot)  and [crossbeam](https://github.com/crossbeam-rs/crossbeam)) and more...
 
 
 
@@ -24,6 +26,8 @@ Cogo is a high-performance library for programming stackful coroutines with whic
 * ``` cogo/std/sync ```  Includes ``` Mutex/RwLock/WaitGroup/Semphore/channel(Bounded, unbounded, chan!()) ```...and more..
 * ``` cogo/std/defer ``` Defers evaluation of a block of code until the end of the scope.
 * ``` cogo/std/map ```  Provides the same concurrency map as Golang, with ```SyncHashMap``` and ```SyncBtreeMap```.It is suitable for concurrent environments with too many reads and too few writes
+* ``` cogo/std/time ``` Improve the implementation of a high performance time
+
 
 > Crates based on cogo implementation
 * [cdbc](https://github.com/co-rs/cdbc) Database Drivers include mysql, Postgres, AND SQLite
