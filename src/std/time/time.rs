@@ -1,5 +1,7 @@
+use std::alloc::Layout;
 use std::fmt::{Debug, Display, Formatter};
 use std::ops::{Add, Deref, DerefMut, Sub};
+use std::time::SystemTime;
 use once_cell::sync::Lazy;
 use serde::de::Error;
 use time::{format_description, OffsetDateTime, UtcOffset};
@@ -7,6 +9,7 @@ use time::error::InvalidFormatDescription;
 use time::format_description::FormatItem;
 use crate::std::time::format::{longDayNames, longMonthNames};
 use crate::std::errors::Result;
+use crate::std::time::sys::Timespec;
 
 /// "Mon, 02 Jan 2006 15:04:05 GMT"
 pub const TimeFormat: &'static str = "[weekday], [day] [month] [year] [hour]:[minute]:[second] GMT";
@@ -14,6 +17,10 @@ pub const TimeFormat: &'static str = "[weekday], [day] [month] [year] [hour]:[mi
 pub const RFC3339: &'static str = "[year]-[month]-[day]T[hour]:[minute]:[second][offset_hour sign:mandatory]:[offset_minute]";
 ///"2006-01-02T15:04:05.999999999Z07:00"
 pub const RFC3339Nano: &'static str = "[year]-[month]-[day]T[hour]:[minute]:[second].[subsecond][offset_hour sign:mandatory]:[offset_minute]";
+
+pub static GLOBAL_OFFSET: Lazy<UtcOffset> = Lazy::new(|| {
+    UtcOffset::from_whole_seconds(Timespec::now().local().tm_utcoff).unwrap()
+});
 
 /// a time wrapper just like golang
 #[derive(Eq, PartialEq, Ord, PartialOrd)]
@@ -25,9 +32,19 @@ impl Time {
     pub fn unix_timestamp(&self) -> i64 {
         self.inner.unix_timestamp()
     }
+
+    pub fn unix_timestamp_nano(&self) -> i64 {
+        self.inner.unix_timestamp_nanos() as i64
+    }
+
     // unix_sec returns the time's seconds since Jan 1 1970 (Unix time).
-    pub fn unix_sec(&self) -> i64 {
+    pub fn unix(&self) -> i64 {
         self.inner.unix_timestamp()
+    }
+
+    // unix_sec returns the time's seconds since Jan 1 1970 (Unix time).
+    pub fn unix_nano(&self) -> i64 {
+        self.inner.unix_timestamp_nanos() as i64
     }
 
     pub fn add(&mut self, d: std::time::Duration) {
@@ -169,7 +186,7 @@ impl Time {
     // now returns the current local time.
     pub fn now() -> Time {
         let mut now = time::OffsetDateTime::now_utc();
-        now = now.to_offset(UtcOffset::local_offset_at(now).unwrap_or(UtcOffset::UTC));
+        now = now.to_offset(GLOBAL_OFFSET.clone());
         return Time {
             inner: now
         };
