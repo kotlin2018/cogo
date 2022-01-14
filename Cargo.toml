@@ -5,7 +5,7 @@ members = [
 
 [package]
 name = "cogo"
-version = "0.1.22"
+version = "0.1.23"
 edition = "2018"
 authors = ["zhuxiujia@qq.com","Xudong Huang <huangxu008@hotmail.com>"]
 license = "MIT/Apache-2.0"
@@ -55,7 +55,18 @@ tempdir = "0.3.7"
 
 [target.'cfg(windows)'.dependencies]
 miow = "0.3"
-winapi = "0.3"
+winapi = {version = "0.3",features = ["std", "minwinbase", "minwindef", "timezoneapi"]}
+
+[target."cfg(all(target_arch = \"wasm32\", not(any(target_os = \"emscripten\", target_os = \"wasi\"))))".dependencies.js-sys]
+version = "0.3"
+optional = true
+
+[target."cfg(all(target_arch = \"wasm32\", not(any(target_os = \"emscripten\", target_os = \"wasi\"))))".dependencies.wasm-bindgen]
+version = "0.2"
+optional = true
+
+[target."cfg(all(target_arch = \"wasm32\", not(any(target_os = \"emscripten\", target_os = \"wasi\"))))".dev-dependencies.wasm-bindgen-test]
+version = "0.3"
 
 [profile.release]
 lto = true
