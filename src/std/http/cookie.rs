@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::ops::{Deref, Index};
 use http::HeaderValue;
 use once_cell::sync::Lazy;
+use crate::hash_map;
 use crate::std::net::textproto;
 use crate::std::strings;
 use crate::std::time::time::Time;
@@ -193,91 +194,91 @@ fn is_not_token(r: char) -> bool {
     return !is_token_rune(r);
 }
 
-const IS_TOKEN_TABLE: Lazy<Vec<char>> = Lazy::new(|| {
-    let mut m = Vec::with_capacity(127);
-    m.push('!');
-    m.push('#');
-    m.push('$');
-    m.push('%');
-    m.push('&');
-    m.push('\'');
-    m.push('*');
-    m.push('+');
-    m.push('-');
-    m.push('.');
-    m.push('0');
-    m.push('1');
-    m.push('2');
-    m.push('3');
-    m.push('4');
-    m.push('5');
-    m.push('6');
-    m.push('7');
-    m.push('8');
-    m.push('9');
-    m.push('A');
-    m.push('B');
-    m.push('C');
-    m.push('D');
-    m.push('E');
-    m.push('F');
-    m.push('G');
-    m.push('H');
-    m.push('I');
-    m.push('J');
-    m.push('K');
-    m.push('L');
-    m.push('M');
-    m.push('N');
-    m.push('O');
-    m.push('P');
-    m.push('Q');
-    m.push('R');
-    m.push('S');
-    m.push('T');
-    m.push('U');
-    m.push('V');
-    m.push('W');
-    m.push('X');
-    m.push('Y');
-    m.push('Z');
-    m.push('^');
-    m.push('_');
-    m.push('`');
-    m.push('a');
-    m.push('b');
-    m.push('c');
-    m.push('d');
-    m.push('e');
-    m.push('f');
-    m.push('g');
-    m.push('h');
-    m.push('i');
-    m.push('j');
-    m.push('k');
-    m.push('l');
-    m.push('m');
-    m.push('n');
-    m.push('o');
-    m.push('p');
-    m.push('q');
-    m.push('r');
-    m.push('s');
-    m.push('t');
-    m.push('u');
-    m.push('v');
-    m.push('w');
-    m.push('x');
-    m.push('y');
-    m.push('z');
-    m.push('|');
-    m.push('~');
-    m
+const IS_TOKEN_TABLE: Lazy<HashMap<char,bool>> = Lazy::new(|| {
+    hash_map! {
+    '!':  true,
+	'#':  true,
+	'$':  true,
+	'%':  true,
+	'&':  true,
+	'\'': true,
+	'*':  true,
+	'+':  true,
+	'-':  true,
+	'.':  true,
+	'0':  true,
+	'1':  true,
+	'2':  true,
+	'3':  true,
+	'4':  true,
+	'5':  true,
+	'6':  true,
+	'7':  true,
+	'8':  true,
+	'9':  true,
+	'A':  true,
+	'B':  true,
+	'C':  true,
+	'D':  true,
+	'E':  true,
+	'F':  true,
+	'G':  true,
+	'H':  true,
+	'I':  true,
+	'J':  true,
+	'K':  true,
+	'L':  true,
+	'M':  true,
+	'N':  true,
+	'O':  true,
+	'P':  true,
+	'Q':  true,
+	'R':  true,
+	'S':  true,
+	'T':  true,
+	'U':  true,
+	'W':  true,
+	'V':  true,
+	'X':  true,
+	'Y':  true,
+	'Z':  true,
+	'^':  true,
+	'_':  true,
+	'`':  true,
+	'a':  true,
+	'b':  true,
+	'c':  true,
+	'd':  true,
+	'e':  true,
+	'f':  true,
+	'g':  true,
+	'h':  true,
+	'i':  true,
+	'j':  true,
+	'k':  true,
+	'l':  true,
+	'm':  true,
+	'n':  true,
+	'o':  true,
+	'p':  true,
+	'q':  true,
+	'r':  true,
+	's':  true,
+	't':  true,
+	'u':  true,
+	'v':  true,
+	'w':  true,
+	'x':  true,
+	'y':  true,
+	'z':  true,
+	'|':  true,
+	'~':  true,
+    }
 });
 
 fn is_token_rune(r: char) -> bool {
     let i = r as usize;
-    return (i < IS_TOKEN_TABLE.len()) && IS_TOKEN_TABLE.deref().get(i).is_some();
+    return (i < IS_TOKEN_TABLE.len()) && IS_TOKEN_TABLE.deref().get(&r).is_some();
 }
 
 
