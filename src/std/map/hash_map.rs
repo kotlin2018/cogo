@@ -152,12 +152,12 @@ impl<K, V> SyncMapImpl<K, V> where K: std::cmp::Eq + Hash + Clone {
     /// # Examples
     ///
     /// ```
-    /// use cogo::std::sync::{Mutex, SyncHashMap};
+    /// use cogo::std::sync::{SyncHashMap};
     ///
     /// let map = SyncHashMap::new();
     /// map.insert(1, "a");
-    /// assert_eq!(map.get(&1), Some(&"a"));
-    /// assert_eq!(map.get(&2), None);
+    /// assert_eq!(*map.get(&1).unwrap(), "a");
+    /// assert_eq!(map.get(&2).is_none(), true);
     /// ```
     pub fn get<Q: ?Sized>(&self, k: &Q) -> Option<SyncMapRef<'_, V>>
         where
@@ -228,6 +228,15 @@ impl<K, V> SyncMapImpl<K, V> where K: std::cmp::Eq + Hash + Clone {
                 Err(_) => {
                     continue;
                 }
+            }
+        }
+    }
+
+    pub fn into_iter(self) -> Iter<'static, K, V> {
+        unsafe {
+            let iter = (&*self.read.get()).iter();
+            Iter {
+                inner: Some(iter)
             }
         }
     }
@@ -376,21 +385,14 @@ impl<'a, K, V> IntoIterator for &'a mut SyncMapImpl<K, V> where K: Eq + Hash + C
     }
 }
 
-impl<'a, K, V> IntoIterator for SyncMapImpl<K, V> {
-    type Item = (K, V);
-    type IntoIter = IntoIter<K, V>;
+impl<K, V> IntoIterator for SyncMapImpl<K, V> where
+    K: Eq + Hash + Clone,
+    K: 'static, V: 'static {
+    type Item = (&'static K, &'static V);
+    type IntoIter = Iter<'static, K, V>;
 
     fn into_iter(mut self) -> Self::IntoIter {
-        loop {
-            match self.dirty.into_inner() {
-                Ok(v) => {
-                    return v.into_iter();
-                }
-                Err(e) => {
-                    self.dirty = Mutex::new(e.into_inner());
-                }
-            }
-        }
+        self.into_iter()
     }
 }
 
