@@ -1017,7 +1017,7 @@ mod tests {
         let (request_tx, request_rx) = channel();
         let (response_tx, response_rx) = channel();
 
-        // Request `x`s until we have `6`.
+        // request `x`s until we have `6`.
         let t = thread::spawn(move || {
             let mut count = 0;
             loop {

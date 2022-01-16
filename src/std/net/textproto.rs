@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 // TrimString returns s without leading and trailing ASCII space.
 pub fn trim_string(b: &str) -> String {
     let mut b = b.to_string().into_bytes();
@@ -13,3 +15,8 @@ pub fn trim_string(b: &str) -> String {
 fn is_asciispace(b: &u8) -> bool {
     *b == ' ' as u8 || *b == '\t' as u8 || *b == '\n' as u8 || *b == '\r' as u8
 }
+
+
+/// A MIMEHeader represents a MIME-style header mapping
+/// keys to sets of values.
+pub type MIMEHeader = HashMap<String, Vec<String>>;
