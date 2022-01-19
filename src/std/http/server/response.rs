@@ -120,7 +120,7 @@ pub fn encode(mut msg: Response, mut buf: &mut BytesMut) {
     msg.clear_body();
 }
 
-// impl io::Write for the response body
+/// impl io::Write for the response body
 pub struct BodyWriter<'a>(pub &'a mut BytesMut);
 
 impl<'a> io::Write for BodyWriter<'a> {

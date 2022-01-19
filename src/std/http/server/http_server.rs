@@ -44,8 +44,8 @@ macro_rules! t_c {
     };
 }
 
-/// the http service trait
-/// user code should supply a type that impl the `call` method for the http server
+//// the http service trait
+//// user code should supply a type that impl the `call` method for the http server
 ///
 pub trait HttpService {
     fn call(&mut self, req: Request, rsp: &mut Response) -> io::Result<()>;
@@ -53,11 +53,11 @@ pub trait HttpService {
 
 pub trait HttpServiceFactory: Send + Sized + 'static {
     type Service: HttpService + Send;
-    // creat a new http service for each connection
+    /// creat a new http service for each connection
     fn new_service(&self) -> Self::Service;
 
-    /// Spawns the http service, binding to the given address
-    /// return a coroutine that you can cancel it when need to stop the service
+    //// Spawns the http service, binding to the given address
+    //// return a coroutine that you can cancel it when need to stop the service
     fn start<L: ToSocketAddrs>(self, addr: L) -> io::Result<coroutine::JoinHandle<()>> {
         let listener = TcpListener::bind(addr)?;
         go!(
@@ -84,8 +84,8 @@ fn internal_error_rsp(e: io::Error, buf: &mut BytesMut) -> Response {
     err_rsp
 }
 
-/// this is the generic type http server
-/// with a type parameter that impl `HttpService` trait
+//// this is the generic type http server
+//// with a type parameter that impl `HttpService` trait
 ///
 pub struct HttpServer<T>(pub T);
 
@@ -98,7 +98,7 @@ fn each_connection_loop<T: HttpService>(mut stream: TcpStream, mut service: T) {
     loop {
         stream.reset_io();
         loop {
-            // read the socket for reqs
+            /// read the socket for reqs
             let remaining = req_buf.capacity() - req_buf.len();
             if remaining < 512 {
                 req_buf.reserve(4096 * 8 - remaining);
@@ -135,7 +135,7 @@ fn each_connection_loop<T: HttpService>(mut stream: TcpStream, mut service: T) {
             rsp_buf.reserve(4096 * 32 - remaining);
         }
 
-        // prepare the reqs
+        /// prepare the reqs
         while let Some(req) = t!(request::decode(&mut req_buf)) {
             let mut rsp = Response::new(&mut body_buf);
             if let Err(e) = service.call(req, &mut rsp) {
@@ -189,7 +189,7 @@ fn each_connection_loop<T: HttpService>(mut stream: TcpStream, mut service: T) {
     let mut rsp_buf = BytesMut::with_capacity(4096 * 32);
     let mut body_buf = BytesMut::with_capacity(4096 * 8);
     loop {
-        // read the socket for reqs
+        /// read the socket for reqs
         let remaining = req_buf.capacity() - req_buf.len();
         if remaining < 512 {
             req_buf.reserve(4096 * 8 - remaining);
@@ -206,7 +206,7 @@ fn each_connection_loop<T: HttpService>(mut stream: TcpStream, mut service: T) {
         }
         unsafe { req_buf.advance_mut(n) };
 
-        // prepare the reqs
+        /// prepare the reqs
         while let Some(req) = t!(request::decode(&mut req_buf)) {
             let mut rsp = Response::new(&mut body_buf);
             if let Err(e) = service.call(req, &mut rsp) {
@@ -217,15 +217,15 @@ fn each_connection_loop<T: HttpService>(mut stream: TcpStream, mut service: T) {
             }
         }
 
-        // send the result back to client
+        /// send the result back to client
         t!(stream.write_all(rsp_buf.as_ref()));
         rsp_buf.clear();
     }
 }
 
 impl<T: HttpService + Clone + Send + Sync + 'static> HttpServer<T> {
-    /// Spawns the http service, binding to the given address
-    /// return a coroutine that you can cancel it when need to stop the service
+    //// Spawns the http service, binding to the given address
+    //// return a coroutine that you can cancel it when need to stop the service
     pub fn start<L: ToSocketAddrs>(self, addr: L) -> io::Result<coroutine::JoinHandle<()>> {
         let listener = TcpListener::bind(addr)?;
         let service = self.0;

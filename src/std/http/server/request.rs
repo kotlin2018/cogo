@@ -20,12 +20,12 @@ pub struct RequestHeaders<'req> {
 
 impl Request {
     pub fn method(&self) -> &str {
-        // str::from_utf8(self.slice(&self.method)).unwrap()
+        /// str::from_utf8(self.slice(&self.method)).unwrap()
         unsafe { str::from_utf8_unchecked(self.slice(&self.method)) }
     }
 
     pub fn path(&self) -> &str {
-        // str::from_utf8(self.slice(&self.path)).unwrap()
+        /// str::from_utf8(self.slice(&self.path)).unwrap()
         unsafe { str::from_utf8_unchecked(self.slice(&self.path)) }
     }
 

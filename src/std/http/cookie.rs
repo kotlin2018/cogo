@@ -17,24 +17,24 @@ pub struct Cookie {
     pub domain: String,
     pub expires: Time,
     pub raw_expires: String,
-    // for reading cookies only
-    // MaxAge=0 means no 'Max-Age' attribute specified.
-    // MaxAge<0 means delete cookie now, equivalently 'Max-Age: 0'
-    // MaxAge>0 means Max-Age attribute present and given in seconds
+    /// for reading cookies only
+    /// MaxAge=0 means no 'Max-Age' attribute specified.
+    /// MaxAge<0 means delete cookie now, equivalently 'Max-Age: 0'
+    /// MaxAge>0 means Max-Age attribute present and given in seconds
     pub max_age: i32,
     pub secure: bool,
     pub http_only: bool,
     pub same_site: SameSite,
     pub raw: String,
-    pub unparsed: Vec<String>, // Raw text of unparsed attribute-value pairs
+    pub unparsed: Vec<String>, /// Raw text of unparsed attribute-value pairs
 }
 
-// SameSite allows a server to define a cookie attribute making it impossible for
-// the browser to send this cookie along with cross-site requests. The main
-// goal is to mitigate the risk of cross-origin information leakage, and provide
-// some protection against cross-site request forgery attacks.
+/// SameSite allows a server to define a cookie attribute making it impossible for
+/// the browser to send this cookie along with cross-site requests. The main
+/// goal is to mitigate the risk of cross-origin information leakage, and provide
+/// some protection against cross-site request forgery attacks.
 //
-// See https://tools.ietf.org/html/draft-ietf-httpbis-cookie-same-site-00 for details.
+/// See https://tools.ietf.org/html/draft-ietf-httpbis-cookie-same-site-00 for details.
 pub type SameSite = i32;
 
 pub const SameSiteDefaultMode: SameSite = 1;
@@ -42,8 +42,8 @@ pub const SameSiteLaxMode: SameSite = 1;
 pub const SameSiteStrictMode: SameSite = 1;
 pub const SameSiteNoneMode: SameSite = 1;
 
-// readSetCookies parses all "Set-Cookie" values from
-// the header h and returns the successfully parsed Cookies.
+/// readSetCookies parses all "Set-Cookie" values from
+/// the header h and returns the successfully parsed Cookies.
 fn read_set_cookies(h: http::HeaderMap) -> Vec<Cookie> {
     let set_cookie = h.get_all("Set-Cookie");
     let set_cookie = {
@@ -186,17 +186,17 @@ fn read_set_cookies(h: http::HeaderMap) -> Vec<Cookie> {
     cookies
 }
 
-// SetCookie adds a Set-Cookie header to the provided ResponseWriter's headers.
-// The provided cookie must have a valid Name. Invalid cookies may be
-// silently dropped.
+/// SetCookie adds a Set-Cookie header to the provided ResponseWriter's headers.
+/// The provided cookie must have a valid Name. Invalid cookies may be
+/// silently dropped.
 pub fn set_cookie(cookie: &mut Cookie) {
     cookie.string();
 }
 
-// readCookies parses all "Cookie" values from the header h and
-// returns the successfully parsed Cookies.
+/// readCookies parses all "Cookie" values from the header h and
+/// returns the successfully parsed Cookies.
 //
-// if filter isn't empty, only cookies of that name are returned
+/// if filter isn't empty, only cookies of that name are returned
 fn read_cookies(h: HeaderMap, filter: &str) -> Vec<Cookie> {
     let lines = {
         let mut v = vec![];
@@ -262,23 +262,23 @@ fn read_cookies(h: HeaderMap, filter: &str) -> Vec<Cookie> {
     cookies
 }
 
-// validCookieExpires reports whether v is a valid cookie expires-value.
+/// validCookieExpires reports whether v is a valid cookie expires-value.
 fn valid_cookie_expires(t: &Time) -> bool {
-// IETF RFC 6265 Section 5.1.1.5, the year must not be less than 1601
+/// IETF RFC 6265 Section 5.1.1.5, the year must not be less than 1601
     return t.year() >= 1601;
 }
 
-// String returns the serialization of the cookie for use in a Cookie
-// header (if only Name and Value are set) or a Set-Cookie response
-// header (if other fields are set).
-// If c is nil or c.Name is invalid, the empty string is returned.
+/// String returns the serialization of the cookie for use in a Cookie
+/// header (if only Name and Value are set) or a Set-Cookie response
+/// header (if other fields are set).
+/// If c is nil or c.Name is invalid, the empty string is returned.
 impl Cookie {
     pub fn string(&self) -> String {
         if is_cookie_name_valid(self.name.as_str()) {
             return String::new();
         }
-        // extraCookieLength derived from typical length of cookie attributes
-        // see RFC 6265 Sec 4.1.
+        /// extraCookieLength derived from typical length of cookie attributes
+        /// see RFC 6265 Sec 4.1.
         const extraCookieLength: i32 = 110;
         let mut b = String::with_capacity(self.name.len() + self.value.len() + self.path.len() + extraCookieLength as usize);
         b.write_str(&self.name);
@@ -290,10 +290,10 @@ impl Cookie {
         }
         if self.domain.len() > 0 {
             if valid_cookie_domain(&self.domain) {
-                // A c.Domain containing illegal characters is not
-                // sanitized but simply dropped which turns the cookie
-                // into a host-only cookie. A leading dot is okay
-                // but won't be sent.
+                /// A c.Domain containing illegal characters is not
+                /// sanitized but simply dropped which turns the cookie
+                /// into a host-only cookie. A leading dot is okay
+                /// but won't be sent.
                 let mut d = self.domain.clone();
                 if d.starts_with('.') {
                     d = d[1..].to_string();
@@ -322,7 +322,7 @@ impl Cookie {
         }
         match self.same_site {
             SameSiteDefaultMode => {
-                // Skip, default mode is obtained by not emitting the attribute.
+                /// Skip, default mode is obtained by not emitting the attribute.
             }
             SameSiteNoneMode => {
                 b.write_str("; SameSite=None");
@@ -340,17 +340,17 @@ impl Cookie {
 }
 
 
-// sanitize_cookie_value produces a suitable cookie-value from v.
-// https://tools.ietf.org/html/rfc6265#section-4.1.1
-// cookie-value      = *cookie-octet / ( DQUOTE *cookie-octet DQUOTE )
-// cookie-octet      = %x21 / %x23-2B / %x2D-3A / %x3C-5B / %x5D-7E
-//           ; US-ASCII characters excluding CTLs,
-//           ; whitespace DQUOTE, comma, semicolon,
-//           ; and backslash
-// We loosen this as spaces and commas are common in cookie values
-// but we produce a quoted cookie-value if and only if v contains
-// commas or spaces.
-// See https://golang.org/issue/7243 for the discussion.
+/// sanitize_cookie_value produces a suitable cookie-value from v.
+/// https://tools.ietf.org/html/rfc6265#section-4.1.1
+/// cookie-value      = *cookie-octet / ( DQUOTE *cookie-octet DQUOTE )
+/// cookie-octet      = %x21 / %x23-2B / %x2D-3A / %x3C-5B / %x5D-7E
+///           ; US-ASCII characters excluding CTLs,
+///           ; whitespace DQUOTE, comma, semicolon,
+///           ; and backslash
+/// We loosen this as spaces and commas are common in cookie values
+/// but we produce a quoted cookie-value if and only if v contains
+/// commas or spaces.
+/// See https://golang.org/issue/7243 for the discussion.
 fn sanitize_cookie_value(v: &str) -> String {
     let v = sanitize_or_warn("Cookie.Value", valid_cookie_value_byte, v);
     if v.is_empty() {
@@ -362,9 +362,9 @@ fn sanitize_cookie_value(v: &str) -> String {
     return v;
 }
 
-// isCookieDomainName reports whether s is a valid domain name or a valid
-// domain name with a leading dot '.'.  It is almost a direct copy of
-// package net's isDomainName.
+/// isCookieDomainName reports whether s is a valid domain name or a valid
+/// domain name with a leading dot '.'.  It is almost a direct copy of
+/// package net's isDomainName.
 fn is_cookie_domain_name(s: &str) -> bool {
     let mut s = s.to_string();
     if s.len() == 0 {
@@ -374,30 +374,30 @@ fn is_cookie_domain_name(s: &str) -> bool {
         return false;
     }
     if s.starts_with('.') {
-        // A cookie a domain attribute may start with a leading dot.
+        /// A cookie a domain attribute may start with a leading dot.
         s = s[1..].to_string();
     }
     let mut s = s.into_bytes();
     let mut last = '.' as u8;
-    let mut ok = false; // Ok once we've seen a letter.
+    let mut ok = false; /// Ok once we've seen a letter.
     let mut partlen = 0;
     for i in 0..s.len() {
         let c = s[i];
         if 'a' as u8 <= c && c <= 'z' as u8 || 'A' as u8 <= c && c <= 'Z' as u8 {
-            // No '_' allowed here (in contrast to package net).
+            /// No '_' allowed here (in contrast to package net).
             ok = true;
             partlen += 1;
         } else if '0' as u8 <= c && c <= '9' as u8 {
-            // fine
+            /// fine
             partlen += 1;
         } else if c as u8 == '-' as u8 {
-            // Byte before dash cannot be dot.
+            /// Byte before dash cannot be dot.
             if last == '.' as u8 {
                 return false;
             }
             partlen += 1;
         } else if c == '.' as u8 {
-            // Byte before dot cannot be dot, dash.
+            /// Byte before dot cannot be dot, dash.
             if last == '.' as u8 || last == '-' as u8 {
                 return false;
             }
@@ -555,7 +555,7 @@ fn is_token_rune(r: char) -> bool {
 }
 
 fn parse_cookie_value(raw: &str, allow_double_quote: bool) -> (&str, bool) {
-    // Strip the quotes, if present.
+    /// Strip the quotes, if present.
     let mut raw = raw;
     if allow_double_quote && raw.len() > 1 && raw.starts_with('"') && raw.ends_with('"') {
         raw = raw.trim_matches('"');
@@ -572,8 +572,8 @@ fn valid_cookie_path_byte(b: u8) -> bool {
     return 0x20 <= b && b < 0x7f && b != (';' as u8);
 }
 
-// path-av           = "Path=" path-value
-// path-value        = <any CHAR except CTLs or ";">
+/// path-av           = "Path=" path-value
+/// path-value        = <any CHAR except CTLs or ";">
 fn sanitize_cookie_path(v: &str) -> String {
     return sanitize_or_warn("Cookie.Path", valid_cookie_path_byte, v);
 }
@@ -653,7 +653,7 @@ mod test {
         let tests = vec![("/path", "/path"), ("/path with space/", "/path with space/"), ("/just;no;semicolon\x00orstuff/", "/justnosemicolonorstuff/")];
 
         for (_, tt) in tests {
-            // let got =
+            /// let got =
         }
     }
 }
