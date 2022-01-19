@@ -44,8 +44,8 @@ macro_rules! t_c {
     };
 }
 
-//// the http service trait
-//// user code should supply a type that impl the `call` method for the http server
+///  the http service trait
+///  user code should supply a type that impl the `call` method for the http server
 ///
 pub trait HttpService {
     fn call(&mut self, req: Request, rsp: &mut Response) -> io::Result<()>;
@@ -56,8 +56,8 @@ pub trait HttpServiceFactory: Send + Sized + 'static {
     /// creat a new http service for each connection
     fn new_service(&self) -> Self::Service;
 
-    //// Spawns the http service, binding to the given address
-    //// return a coroutine that you can cancel it when need to stop the service
+    ///  Spawns the http service, binding to the given address
+    ///  return a coroutine that you can cancel it when need to stop the service
     fn start<L: ToSocketAddrs>(self, addr: L) -> io::Result<coroutine::JoinHandle<()>> {
         let listener = TcpListener::bind(addr)?;
         go!(
@@ -84,8 +84,8 @@ fn internal_error_rsp(e: io::Error, buf: &mut BytesMut) -> Response {
     err_rsp
 }
 
-//// this is the generic type http server
-//// with a type parameter that impl `HttpService` trait
+///  this is the generic type http server
+///  with a type parameter that impl `HttpService` trait
 ///
 pub struct HttpServer<T>(pub T);
 
@@ -224,8 +224,8 @@ fn each_connection_loop<T: HttpService>(mut stream: TcpStream, mut service: T) {
 }
 
 impl<T: HttpService + Clone + Send + Sync + 'static> HttpServer<T> {
-    //// Spawns the http service, binding to the given address
-    //// return a coroutine that you can cancel it when need to stop the service
+    ///  Spawns the http service, binding to the given address
+    ///  return a coroutine that you can cancel it when need to stop the service
     pub fn start<L: ToSocketAddrs>(self, addr: L) -> io::Result<coroutine::JoinHandle<()>> {
         let listener = TcpListener::bind(addr)?;
         let service = self.0;
