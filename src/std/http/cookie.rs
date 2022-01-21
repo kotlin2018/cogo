@@ -26,7 +26,7 @@ pub struct Cookie {
     pub http_only: bool,
     pub same_site: SameSite,
     pub raw: String,
-    pub unparsed: Vec<String>, /// Raw text of unparsed attribute-value pairs
+    pub unparsed: Vec<String>, // Raw text of unparsed attribute-value pairs
 }
 
 /// SameSite allows a server to define a cookie attribute making it impossible for
@@ -322,7 +322,7 @@ impl Cookie {
         }
         match self.same_site {
             SameSiteDefaultMode => {
-                /// Skip, default mode is obtained by not emitting the attribute.
+                // Skip, default mode is obtained by not emitting the attribute.
             }
             SameSiteNoneMode => {
                 b.write_str("; SameSite=None");
@@ -374,7 +374,7 @@ fn is_cookie_domain_name(s: &str) -> bool {
         return false;
     }
     if s.starts_with('.') {
-        /// A cookie a domain attribute may start with a leading dot.
+        // A cookie a domain attribute may start with a leading dot.
         s = s[1..].to_string();
     }
     let mut s = s.into_bytes();
@@ -384,20 +384,20 @@ fn is_cookie_domain_name(s: &str) -> bool {
     for i in 0..s.len() {
         let c = s[i];
         if 'a' as u8 <= c && c <= 'z' as u8 || 'A' as u8 <= c && c <= 'Z' as u8 {
-            /// No '_' allowed here (in contrast to package net).
+            // No '_' allowed here (in contrast to package net).
             ok = true;
             partlen += 1;
         } else if '0' as u8 <= c && c <= '9' as u8 {
-            /// fine
+            // fine
             partlen += 1;
         } else if c as u8 == '-' as u8 {
-            /// Byte before dash cannot be dot.
+            // Byte before dash cannot be dot.
             if last == '.' as u8 {
                 return false;
             }
             partlen += 1;
         } else if c == '.' as u8 {
-            /// Byte before dot cannot be dot, dash.
+            // Byte before dot cannot be dot, dash.
             if last == '.' as u8 || last == '-' as u8 {
                 return false;
             }
@@ -653,7 +653,7 @@ mod test {
         let tests = vec![("/path", "/path"), ("/path with space/", "/path with space/"), ("/just;no;semicolon\x00orstuff/", "/justnosemicolonorstuff/")];
 
         for (_, tt) in tests {
-            /// let got =
+            // let got =
         }
     }
 }
