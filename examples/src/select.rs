@@ -19,12 +19,20 @@ fn main() {
         tx1.send(42).unwrap();
     });
 
-    let id = select!(
-        _ = listener.accept() => println!("got connected"),
-        _ = coroutine::sleep(Duration::from_millis(1000)) => {},
-        v = rx1.recv() => println!("rx1 received {:?}",v),
-        a = rx2.recv() => println!("rx2 received, a={:?}", a)
-    );
+    let id = select!{
+        _ = listener.accept() => {
+            println!("got connected")
+        },
+        _ = coroutine::sleep(Duration::from_millis(1000)) => {
+
+        },
+        v = rx1.recv() => {
+            println!("rx1 received {:?}",v)
+        },
+        a = rx2.recv() => {
+            println!("rx2 received, a={:?}", a)
+        }
+    };
 
     assert_eq!(id, 3);
     assert_eq!(rx1.recv(), Ok(42));
