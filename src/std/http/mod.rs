@@ -1,6 +1,7 @@
 pub mod jar;
 pub mod cookie;
 pub mod multipart;
+pub mod transport;
 
 use crate::std::errors::Result;
 use std::io::{Read, Write};
