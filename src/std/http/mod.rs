@@ -8,7 +8,7 @@ use std::io::{Read, Write};
 use http::{HeaderMap, HeaderValue};
 use crate::std::io::{Closer, ReadCloser, WriteCloser};
 use crate::std::net::url::Values;
-use crate::std::sync::mpmc::Receiver;
+use crate::std::sync::channel::Receiver;
 
 pub mod server;
 pub mod client;
